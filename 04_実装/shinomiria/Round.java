@@ -1,23 +1,24 @@
 package shinomiria;
 
 import shinomiria.boundary.PlayerIF;
+
 import shinomiria.boundary.FieldIF;
 
 public class Round {
 
-	private boolean lastAction;
+	private PlayerIF lastAction = null;
 
-	private boolean firstPass;
+	private PlayerIF firstPass = null;
 
-	private boolean tipReverse;
+	private boolean tipReverse = false;
 
-	private boolean pass;
+	private boolean pass = false;
 
 	private NumberCard firstPlayerCard;
 
 	private NumberCard secondPlayerCard;
 
-	private Tip[] piledTip;
+	private Tip piledTip = new Tip(0);
 
 	private PlayerIF firstPlayer;
 
@@ -26,7 +27,10 @@ public class Round {
 	private FieldIF field;
 
 	public Round(PlayerIF firstPlayer, PlayerIF secondPlayer, NumberCard firstPLsCard, NumberCard secondPLsCard) {
-
+		this.firstPlayer = firstPlayer;
+		this.secondPlayer = secondPlayer;
+		this.firstPlayerCard = firstPLsCard;
+		this.secondPlayerCard = secondPLsCard;
 	}
 
 	public boolean judgeRoundWinner() {
@@ -42,27 +46,91 @@ public class Round {
 	}
 
 	public void startRound() {
-
+		
 	}
 
-	private int selectAction() {
-		return 0;
+	private Action selectAction(PlayerIF player) {
+		Action act = player.selectActChoice();
+		
+		if(act == Action.ACT) {
+			if(player.getChangeCard()) {
+				act = player.selectAction();
+			}
+			else {
+				act = PILE_TIP;
+			}
+			return act;
+		}
+		else if(act == Action.PASS) {
+			return act;
+		}
+		
+		return Action.UNKNOWN;
+	}
+	
+	private int selectWhichAction() {
+		
 	}
 
-	private void changeNumCard() {
-
+	private void changeNumCard(PlayerIF player) {
+		if(player == firstPlayer) {
+			player.minusTip(1);
+			secondPlayer.plusTip(1);
+			player.addHandCard(firstPlayerCard);
+			firstPlayerCard = firstPlayer.selectCard();
+		}
+		else {
+			player.minusTip(1);
+			firstPlayer.plusTip(1);
+			player.addHandCard(secondPlayerCard);
+			secondPlayerCard = secondPlayer.selectCard();			
+		}
+		
+		lastAction = player;
+		
 	}
 
-	private boolean pileUpTip() {
+	private boolean pileUpTip(PlayerIF player) {
+		tipReverse = !player.selectTipSide();
+		
+		piledTip.plusTip(1);
+		
+		if(tipReverse) {
+			piledTip.addBackSideTip();
+		}
+		
+		lastAction = player;
+		
+		field.updateDisplay();
+		
+		if(piledTip.getTip() == 9) {	
+			// 積まれたチップが9枚になったら
+			return true;
+		}
+		
 		return false;
 	}
 
-	private boolean pass() {
-		return false;
+	private boolean pass(PlayerIF player) {
+		if(pass || tipReverse) {
+			// ラウンドの終了条件を満たしたら
+			return true;
+		}
+		else {
+			if(firstPass == null) {
+				firstPass = player;
+			}
+			pass = true;
+			return false;
+		}
 	}
 
-	private PlayerIF changePlayer(PlayerIF 現在のプレイヤー) {
-		return null;
+	private PlayerIF changePlayer(PlayerIF player) {
+		if(player == firstPlayer) {
+			return secondPlayer;
+		} else {
+			return firstPlayer;
+		}
 	}
 
 }

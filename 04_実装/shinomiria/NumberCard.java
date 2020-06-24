@@ -5,11 +5,11 @@ public class NumberCard {
 	private int num;
 
 	public NumberCard(int num) {
-
+		this.num = num;
 	}
 
 	public int getNum() {
-		return 0;
+		return num;
 	}
 
 }
